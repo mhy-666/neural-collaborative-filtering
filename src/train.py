@@ -17,12 +17,12 @@ gmf_config = {'alias': 'gmf_factor8neg4-implict',
               # 'rmsprop_momentum': 0,
               'optimizer': 'adam',
               'adam_lr': 1e-3,
-              'num_users': 6040,
-              'num_items': 3706,
+              'num_users': 5000,
+              'num_items': 11921,
               'latent_dim': 8,
               'num_negative': 4,
               'l2_regularization': 0, # 0.01
-              'use_cuda': True,
+              'use_cuda': False,
               'device_id': 0,
               'model_dir':'checkpoints/{}_Epoch{}_HR{:.4f}_NDCG{:.4f}.model'}
 
@@ -31,13 +31,13 @@ mlp_config = {'alias': 'mlp_factor8neg4_bz256_166432168_pretrain_reg_0.0000001',
               'batch_size': 256,  # 1024,
               'optimizer': 'adam',
               'adam_lr': 1e-3,
-              'num_users': 6040,
-              'num_items': 3706,
+              'num_users': 5000,
+              'num_items': 11921,
               'latent_dim': 8,
               'num_negative': 4,
               'layers': [16,64,32,16,8],  # layers[0] is the concat of latent user vector & latent item vector
               'l2_regularization': 0.0000001,  # MLP model is sensitive to hyper params
-              'use_cuda': True,
+              'use_cuda': False,
               'device_id': 7,
               'pretrain': True,
               'pretrain_mf': 'checkpoints/{}'.format('gmf_factor8neg4_Epoch100_HR0.6391_NDCG0.2852.model'),
@@ -48,14 +48,14 @@ neumf_config = {'alias': 'pretrain_neumf_factor8neg4',
                 'batch_size': 1024,
                 'optimizer': 'adam',
                 'adam_lr': 1e-3,
-                'num_users': 6040,
-                'num_items': 3706,
+                'num_users': 5000,
+                'num_items': 11921,
                 'latent_dim_mf': 8,
                 'latent_dim_mlp': 8,
                 'num_negative': 4,
                 'layers': [16,32,16,8],  # layers[0] is the concat of latent user vector & latent item vector
                 'l2_regularization': 0.01,
-                'use_cuda': True,
+                'use_cuda': False,
                 'device_id': 7,
                 'pretrain': True,
                 'pretrain_mf': 'checkpoints/{}'.format('gmf_factor8neg4_Epoch100_HR0.6391_NDCG0.2852.model'),
@@ -64,16 +64,16 @@ neumf_config = {'alias': 'pretrain_neumf_factor8neg4',
                 }
 
 # Load Data
-ml1m_dir = 'data/ml-1m/ratings.dat'
-ml1m_rating = pd.read_csv(ml1m_dir, sep='::', header=None, names=['uid', 'mid', 'rating', 'timestamp'],  engine='python')
+ml1m_dir = 'data/ml-1m/animelist_reduced.csv'
+ml1m_rating = pd.read_csv(ml1m_dir)
 # Reindex
-user_id = ml1m_rating[['uid']].drop_duplicates().reindex()
+user_id = ml1m_rating[['user_id']].drop_duplicates().reindex()
 user_id['userId'] = np.arange(len(user_id))
-ml1m_rating = pd.merge(ml1m_rating, user_id, on=['uid'], how='left')
-item_id = ml1m_rating[['mid']].drop_duplicates()
+ml1m_rating = pd.merge(ml1m_rating, user_id, on=['user_id'], how='left')
+item_id = ml1m_rating[['anime_id']].drop_duplicates()
 item_id['itemId'] = np.arange(len(item_id))
-ml1m_rating = pd.merge(ml1m_rating, item_id, on=['mid'], how='left')
-ml1m_rating = ml1m_rating[['userId', 'itemId', 'rating', 'timestamp']]
+ml1m_rating = pd.merge(ml1m_rating, item_id, on=['anime_id'], how='left')
+ml1m_rating = ml1m_rating[['userId', 'itemId', 'rating', 'watching_status', 'watched_episodes']]
 print('Range of userId is [{}, {}]'.format(ml1m_rating.userId.min(), ml1m_rating.userId.max()))
 print('Range of itemId is [{}, {}]'.format(ml1m_rating.itemId.min(), ml1m_rating.itemId.max()))
 # DataLoader for training
